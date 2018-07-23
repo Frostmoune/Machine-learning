@@ -9,6 +9,7 @@ class DataProvider(object):
         self.header = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0',
                     'Accept-Encoding': 'gzip, deflate'}
         self.__data__ = None
+        # self.getData() # 当用新数据时取消这条注释
 
     def getData(self):
         req = request.Request(url = self.__url__, headers = self.header)
@@ -31,7 +32,7 @@ class DataProvider(object):
             line = str(line).strip().split(',')
             for i in range(0, features_num):
                 now_line.append(float(line[i]))
-            now_line.append(int(line[features_num]))
+            now_line.append(line[features_num])
             all_lines.append(now_line)
         return all_lines
     

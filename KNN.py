@@ -17,12 +17,14 @@ def Knn(train_features, train_labels, test_feature, k):
     sorted(train_dict, key = lambda x: x[0], reverse = True)
     k_labels = train_dict[0:k]
     res = 0
+    num = 0
     counts = {}
     for x, y in k_labels:
         if y not in counts.keys():
             counts[y] = 1
         else:
             counts[y] += 1
-        if res < counts[y]:
+        if num < counts[y]:
             res = y
+            num = counts[y]
     return res
