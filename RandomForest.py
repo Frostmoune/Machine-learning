@@ -80,4 +80,4 @@ class RandomForest(object):
             if temp < count[now_res]:
                 temp = count[now_res]
                 res = now_res
-        return now_res
+        return res

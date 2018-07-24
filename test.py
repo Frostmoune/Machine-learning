@@ -53,7 +53,7 @@ def treeTest(feature_len, all_lines, all_features, all_labels):
                 temp = counts[max_son]
                 best_max_son = max_son 
         all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
-    print("Best best_max_son:%d "%(best_max_son))
+    print("Best best_max_son:%d %f"%(best_max_son, counts[best_max_son] / 10))
 
 # 随机森林测试
 def randomForestTest(feature_len, all_lines, all_features, all_labels):
@@ -85,7 +85,7 @@ def randomForestTest(feature_len, all_lines, all_features, all_labels):
                 temp = counts[trees_num]
                 best_trees_num = trees_num
         all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
-    print("Best trees_num:%d "%(best_trees_num))
+    print("Best trees_num:%d %f"%(best_trees_num, counts[best_trees_num] / 10))
 
 if __name__ == "__main__":
     feature_len = 60
