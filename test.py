@@ -1,6 +1,7 @@
 from KNN import Knn
 from Tree import Tree
 from RandomForest import RandomForest
+from SVM import SVM
 from DataProvider import DataProvider
 
 # KNN测试
@@ -87,6 +88,90 @@ def randomForestTest(feature_len, all_lines, all_features, all_labels):
         all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
     print("Best trees_num:%d %f"%(best_trees_num, counts[best_trees_num] / 10))
 
+# SVM测试
+def svmTest(feature_len, all_lines, all_features, all_labels):
+    counts = {}
+    for i in range(10):
+        rate = 0
+        print("Test %d:"%(i + 1))
+        train_features = all_features[0:int(0.8 * len(all_features))]
+        train_labels = all_labels[0:int(0.8 * len(all_features))]
+        test_features = all_features[int(0.8 * len(all_features)):]
+        test_labels = all_labels[int(0.8 * len(all_features)):]
+        length = len(test_labels)
+        for C in range(50, 61, 1):
+            rate = 0
+            new_svm = SVM(train_features, train_labels, C = C, function = 'RBF', d = 0.53)
+            # print("Train:")
+            new_svm.train()
+            # print("\nPredict:", end = "\n")
+            for j in range(0, length): 
+                res = new_svm.predict(test_features[j])
+                if res == test_labels[j]:
+                    rate += 1
+            print("C = %f: "%C, end = " ")
+            print(rate / length)
+            if C not in counts:
+                counts[C] = rate / length
+            else:
+                counts[C] += rate / length
+        all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
+    # counts = counts.items()
+    # sorted(counts, key = lambda x:x[1], reverse = True)
+    # for x, y in counts:
+    #     print(x, y)
+
+# 各算法比较测试
+def compareTest(feature_len, all_lines, all_features, all_labels):
+    for i in range(10): 
+        print("\nTest %d"%(i + 1))
+        train_features = all_features[0:int(0.8 * len(all_features))]
+        train_labels = all_labels[0:int(0.8 * len(all_features))]
+        test_features = all_features[int(0.8 * len(all_features)):]
+        test_labels = all_labels[int(0.8 * len(all_features)):]
+        length = len(test_labels)
+
+        rate = 0
+        print("KNN : ", end = "")
+        for j in range(0, length): 
+            res = Knn(train_features, train_labels, test_features[j], 5)
+            if res == test_labels[j]:
+                rate += 1
+        print(rate / length)
+        
+        rate = 0
+        print("Tree : ", end = "")
+        new_tree = Tree(train_features, train_labels, len(train_features[0]), 5, 5)
+        new_tree.train()
+        for j in range(0, length): 
+            res = new_tree.predictTree(test_features[j])
+            if res == test_labels[j]:
+                rate += 1
+        print(rate / length)
+
+        rate = 0
+        print("RandomForest : ", end = "")
+        new_forest = RandomForest(17)
+        new_forest.buildTrees(train_features, train_labels, len(train_features[0]), 3, 5)
+        for j in range(0, length): 
+            res = new_forest.predictForest(test_features[j])
+            if res == test_labels[j]:
+                rate += 1
+        print(rate / length)
+
+        rate = 0
+        print("SVM : ", end = "")
+        new_svm = SVM(train_features, train_labels, C = 43, function = 'RBF', d = 0.53)
+        new_svm.train()
+        for j in range(0, length): 
+            res = new_svm.predict(test_features[j])
+            if res == test_labels[j]:
+                rate += 1
+        print(rate / length)
+
+        all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
+
+
 if __name__ == "__main__":
     feature_len = 60
     now_provider = DataProvider("https://archive.ics.uci.edu/ml/machine-learning-databases/undocumented/connectionist-bench/sonar/sonar.all-data")
@@ -96,10 +181,14 @@ if __name__ == "__main__":
     # all_lines = now_provider.read(feature_len)
     all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
 
-    cho = '3'
+    cho = '5'
     if cho == '1':
         knnTest(feature_len, all_lines, all_features, all_labels)
     elif cho == '2':
         treeTest(feature_len, all_lines, all_features, all_labels)
     elif cho == '3':
         randomForestTest(feature_len, all_lines, all_features, all_labels)
+    elif cho == '4':
+        svmTest(feature_len, all_lines, all_features, all_labels)
+    elif cho == '5':
+        compareTest(feature_len, all_lines, all_features, all_labels)
