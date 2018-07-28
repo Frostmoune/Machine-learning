@@ -2,7 +2,7 @@ import numpy as np
 import random 
 
 class SVM(object):
-    def __init__(self, all_features, all_labels, C, function = 'RBF', d = 1, tol = 0.001):
+    def __init__(self, all_features, all_labels, C, function = 'RBF', d = 1, tol = 0.00001):
         self.features = np.array(all_features)
         self.setSVMLabels(all_labels)
         # 只有RBF和线性核
