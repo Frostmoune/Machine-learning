@@ -37,7 +37,7 @@ class RandomTree(Tree):
         for i in range(len(best_sub_data_indexs)):
             new_son = Node(best_sub_data_indexs[i])
             new_son.setDivideFeatureAndValue(best_divide_feature_index, best_value[0] + best_value[1] * (i + 1))
-            self.buildNode(new_son)
+            self.buildRandomNode(new_son)
             now_root.son.append(new_son)
 
     def train(self):

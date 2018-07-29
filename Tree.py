@@ -1,4 +1,5 @@
 import numpy as np 
+import random
 
 class Node(object):
     def __init__(self, data_index, classfy = None, is_leaf = False):
@@ -24,6 +25,18 @@ class Tree(object):
         self.max_son = max_son
         self.max_leaf_data = max_leaf_data
         self.root = Node(list(range(0, len(all_features))))
+    
+    # 设置max_son
+    def setMaxSon(self, max_son):
+        self.max_son = max_son
+    
+    # 设置max_leaf_data
+    def setMaxLeafData(self, max_leaf_data):
+        self.max_leaf_data = max_leaf_data
+    
+    # 清空root
+    def deleteRoot(self):
+        self.root = Node(list(range(0, len(self.all_features))))
     
     # 对数据根据其中一个特征进行划分
     def getSubIndex(self, data_index, feature_index):
@@ -114,10 +127,12 @@ class Tree(object):
     def predictNode(self, now_node, test_feature):
         if now_node.is_leaf:
             return now_node.classfy
-        for x in now_node.son:
-            if test_feature[x.divide_feature_index] < x.divide_value:
-                return self.predictNode(x, test_feature)
-        return -1
+        for i in range(len(now_node.son)):
+            if test_feature[now_node.son[i].divide_feature_index] < now_node.son[i].divide_value:
+                return self.predictNode(now_node.son[i], test_feature)
+            elif i == len(now_node.son) - 1 and test_feature[now_node.son[i].divide_feature_index] >= now_node.son[i].divide_value:
+                return self.predictNode(now_node.son[i], test_feature)
+        return self.all_labels[random.randint(0, len(self.all_labels) - 1)]
 
     # 预测新特征
     def predictTree(self, test_feature):

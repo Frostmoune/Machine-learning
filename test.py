@@ -4,6 +4,7 @@ from RandomForest import RandomForest
 from SVM import SVM
 from Bayes import NaiveBayes
 from Logistic import Logistic
+from AdaBoost import AdaBoost
 from DataProvider import DataProvider
 
 # KNN测试
@@ -45,12 +46,13 @@ def treeTest(feature_len, all_lines, all_features, all_labels):
         train_labels = all_labels[0:int(0.8 * len(all_features))]
         test_features = all_features[int(0.8 * len(all_features)):]
         test_labels = all_labels[int(0.8 * len(all_features)):]
+        new_tree = Tree(train_features, train_labels, len(train_features[0]), 0, 8)
         for max_son in range(2, 10):
             rate = 0
             if max_son not in counts:
                 counts[max_son] = 0
             print("max_son:%d "%(max_son), end = " ")
-            new_tree = Tree(train_features, train_labels, len(train_features[0]), max_son, 8)
+            new_tree.setMaxSon(max_son)
             new_tree.train()
             length = len(test_labels)
             for j in range(0, length):
@@ -61,7 +63,8 @@ def treeTest(feature_len, all_lines, all_features, all_labels):
             counts[max_son] += rate / length
             if temp < counts[max_son]:
                 temp = counts[max_son]
-                best_max_son = max_son 
+                best_max_son = max_son
+            new_tree.deleteRoot() 
         all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
     print("Best best_max_leaf:%d %f"%(best_max_son, counts[best_max_son] / 10))
     for x in counts:
@@ -79,7 +82,7 @@ def randomForestTest(feature_len, all_lines, all_features, all_labels):
         train_labels = all_labels[0:int(0.8 * len(all_features))]
         test_features = all_features[int(0.8 * len(all_features)):]
         test_labels = all_labels[int(0.8 * len(all_features)):]
-        for trees_num in range(10, 21):
+        for trees_num in range(25, 36):
             rate = 0
             if trees_num not in counts:
                 counts[trees_num] = 0
@@ -174,8 +177,44 @@ def logisticTest(feature_len, all_lines, all_features, all_labels):
             print("tol = %f: %f"%(tol, rate / length))
         all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
 
+# AdaBoost森林测试
+def adaBoostTest(feature_len, all_lines, all_features, all_labels):
+    best_trees_num = 0
+    temp = 0
+    counts = {}
+    for i in range(10):
+        rate = 0
+        print("Test %d:"%(i + 1))
+        train_features = all_features[0:int(0.8 * len(all_features))]
+        train_labels = all_labels[0:int(0.8 * len(all_features))]
+        test_features = all_features[int(0.8 * len(all_features)):]
+        test_labels = all_labels[int(0.8 * len(all_features)):]
+        for trees_num in range(25, 36):
+            rate = 0
+            if trees_num not in counts:
+                counts[trees_num] = 0
+            print("trees_num:%d "%(trees_num), end = " ")
+            new_boost = AdaBoost(train_features, train_labels, len(train_features[0]), trees_num, mode = 2)
+            new_boost.train()
+            # new_boost.showInfo()
+            length = len(test_labels)
+            for j in range(0, length):
+                res = new_boost.predict(test_features[j])
+                if res == test_labels[j]:
+                    rate += 1
+            print(rate / length)
+            counts[trees_num] += rate / length
+            if temp < counts[trees_num]:
+                temp = counts[trees_num]
+                best_trees_num = trees_num
+        all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
+    print("Best trees_num:%d %f"%(best_trees_num, counts[best_trees_num] / 10))
+    for x in counts:
+        print(x, counts[x])
+
 # 各算法比较测试
 def compareTest(feature_len, all_lines, all_features, all_labels):
+    count = {}
     for i in range(10): 
         print("\nTest %d"%(i + 1))
         train_features = all_features[0:int(0.8 * len(all_features))]
@@ -193,6 +232,10 @@ def compareTest(feature_len, all_lines, all_features, all_labels):
             if res == test_labels[j]:
                 rate += 1
         print(rate / length)
+        if "NaiveBayes" not in count:
+            count["NaiveBayes"] = rate / length
+        else:
+            count["NaiveBayes"] += rate / length
 
         rate = 0
         print("KNN : ", end = "")
@@ -201,6 +244,10 @@ def compareTest(feature_len, all_lines, all_features, all_labels):
             if res == test_labels[j]:
                 rate += 1
         print(rate / length)
+        if "KNN" not in count:
+            count["KNN"] = rate / length
+        else:
+            count["KNN"] += rate / length
 
         rate = 0
         print("Logistic : ", end = "")
@@ -211,6 +258,10 @@ def compareTest(feature_len, all_lines, all_features, all_labels):
             if res == test_labels[j]:
                 rate += 1
         print(rate / length)
+        if "Logistic" not in count:
+            count["Logistic"] = rate / length
+        else:
+            count["Logistic"] += rate / length
         
         rate = 0
         print("Tree : ", end = "")
@@ -221,16 +272,38 @@ def compareTest(feature_len, all_lines, all_features, all_labels):
             if res == test_labels[j]:
                 rate += 1
         print(rate / length)
+        if "Tree" not in count:
+            count["Tree"] = rate / length
+        else:
+            count["Tree"] += rate / length
+
+        rate = 0
+        print("AdaBoost : ", end = "")
+        new_boost = AdaBoost(train_features, train_labels, len(train_features[0]), 28, mode = 2)
+        new_boost.train()
+        for j in range(0, length): 
+            res = new_boost.predict(test_features[j])
+            if res == test_labels[j]:
+                rate += 1
+        print(rate / length)
+        if "AdaBoost" not in count:
+            count["AdaBoost"] = rate / length
+        else:
+            count["AdaBoost"] += rate / length
 
         rate = 0
         print("RandomForest : ", end = "")
-        new_forest = RandomForest(19)
+        new_forest = RandomForest(30)
         new_forest.buildTrees(train_features, train_labels, len(train_features[0]), 3, 6)
         for j in range(0, length): 
             res = new_forest.predictForest(test_features[j])
             if res == test_labels[j]:
                 rate += 1
         print(rate / length)
+        if "RandomForest" not in count:
+            count["RandomForest"] = rate / length
+        else:
+            count["RandomForest"] += rate / length
 
         rate = 0
         print("SVM : ", end = "")
@@ -241,9 +314,17 @@ def compareTest(feature_len, all_lines, all_features, all_labels):
             if res == test_labels[j]:
                 rate += 1
         print(rate / length)
+        if "SVM" not in count:
+            count["SVM"] = rate / length
+        else:
+            count["SVM"] += rate / length
 
         all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
-
+    
+    print("\nAverage:")
+    for x in count:
+        print(x, end = ": ")
+        print(count[x] / 10)
 
 if __name__ == "__main__":
     feature_len = 60
@@ -254,7 +335,7 @@ if __name__ == "__main__":
     # all_lines = now_provider.read(feature_len)
     all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
 
-    cho = '7'
+    cho = '8'
     if cho == '1':
         knnTest(feature_len, all_lines, all_features, all_labels)
     elif cho == '2':
@@ -268,4 +349,6 @@ if __name__ == "__main__":
     elif cho == '6':
         logisticTest(feature_len, all_lines, all_features, all_labels)
     elif cho == '7':
+        adaBoostTest(feature_len, all_lines, all_features, all_labels)
+    elif cho == '8':
         compareTest(feature_len, all_lines, all_features, all_labels)
