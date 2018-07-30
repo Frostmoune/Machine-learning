@@ -247,7 +247,6 @@ def neuralNetworkTest(feature_len, all_lines, all_features, all_labels):
     for x in counts:
         print(x, counts[x])
 
-
 # 各算法比较测试
 def compareTest(feature_len, all_lines, all_features, all_labels):
     count = {}
@@ -385,7 +384,7 @@ if __name__ == "__main__":
     # all_lines = now_provider.read(feature_len)
     all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
 
-    cho = '8'
+    cho = '9'
     if cho == '1':
         knnTest(feature_len, all_lines, all_features, all_labels)
     elif cho == '2':
