@@ -5,6 +5,7 @@ from SVM import SVM
 from Bayes import NaiveBayes
 from Logistic import Logistic
 from AdaBoost import AdaBoost
+from NeuralNetwork import NeuralNetwork
 from DataProvider import DataProvider
 
 # KNN测试
@@ -212,6 +213,41 @@ def adaBoostTest(feature_len, all_lines, all_features, all_labels):
     for x in counts:
         print(x, counts[x])
 
+# 神经网络测试
+def neuralNetworkTest(feature_len, all_lines, all_features, all_labels):
+    best_hidden_num = 0
+    temp = 0
+    counts = {}
+    for i in range(10):
+        rate = 0
+        print("Test %d:"%(i + 1))
+        train_features = all_features[0:int(0.8 * len(all_features))]
+        train_labels = all_labels[0:int(0.8 * len(all_features))]
+        test_features = all_features[int(0.8 * len(all_features)):]
+        test_labels = all_labels[int(0.8 * len(all_features)):]
+        for hidden_num in range(30, 41):
+            rate = 0
+            if hidden_num not in counts:
+                counts[hidden_num] = 0
+            print("hidden_num:%d "%(hidden_num), end = " ")
+            new_NN = NeuralNetwork(train_features, train_labels, len(train_features[0]), hidden_num, learn_rate = 100)
+            new_NN.train()
+            length = len(test_labels)
+            for j in range(0, length):
+                res = new_NN.predict(test_features[j])
+                if res == test_labels[j]:
+                    rate += 1
+            print(rate / length)
+            counts[hidden_num] += rate / length
+            if temp < counts[hidden_num]:
+                temp = counts[hidden_num]
+                best_hidden_num = hidden_num
+        all_features, all_labels = now_provider.getFeatureAndLabel(all_lines, feature_len)
+    print("Best hidden_num:%d %f"%(best_hidden_num, counts[best_hidden_num] / 10))
+    for x in counts:
+        print(x, counts[x])
+
+
 # 各算法比较测试
 def compareTest(feature_len, all_lines, all_features, all_labels):
     count = {}
@@ -262,6 +298,20 @@ def compareTest(feature_len, all_lines, all_features, all_labels):
             count["Logistic"] = rate / length
         else:
             count["Logistic"] += rate / length
+        
+        rate = 0
+        print("NeuralNetwork : ", end = "")
+        new_NN = NeuralNetwork(train_features, train_labels, feature_len, hidden_num = 32, learn_rate = 100)
+        new_NN.train()
+        for j in range(0, length): 
+            res = new_NN.predict(test_features[j])
+            if res == test_labels[j]:
+                rate += 1
+        print(rate / length)
+        if "NeuralNetwork" not in count:
+            count["NeuralNetwork"] = rate / length
+        else:
+            count["NeuralNetwork"] += rate / length
         
         rate = 0
         print("Tree : ", end = "")
@@ -351,4 +401,6 @@ if __name__ == "__main__":
     elif cho == '7':
         adaBoostTest(feature_len, all_lines, all_features, all_labels)
     elif cho == '8':
+        neuralNetworkTest(feature_len, all_lines, all_features, all_labels)
+    elif cho == '9':
         compareTest(feature_len, all_lines, all_features, all_labels)
